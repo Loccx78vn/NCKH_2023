@@ -61,22 +61,9 @@ NC_dat2<-NC_dat %>%
   select(c(QoF,QoCU,QoEX,QoIN,QoCO,QoT))
 ```
 
-## Transform dataset NC_dat1 to NC_dat3 to easy to implement PLS sem:
-```{r}
-dat_for_NC<-NC_dat1 %>% 
-  select(contains("Qo")) %>% 
-  select(-c("QoF3","QoCU5","QoIN1")) %>%
-  rename(QoF3 = QoF4,
-         QoF4 = QoT1,
-         QoF5 = QoT2,
-         QoF6 = QoT3,
-         QoF7 = QoT4)
-```
-
 ## Phân tích đơn biến: {.tabset}
 
 ### Bảng mô tả:
-
 ```{r}
 #Mô tả bộ dữ liệu theo Nam và Nữ
 library(table1)

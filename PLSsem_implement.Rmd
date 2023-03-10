@@ -57,102 +57,126 @@ H7: DVPT related vưới TMDT vì các biến liên quan tới sự vệ sinh tr
 # Tạo biến PLS sem:
 ```{r,warning=T}
 #Creating an object suited for use with the fitting function sempls:
-NCKH <- plsm(data = NC_dat3, strucmod = NCKH_sm, measuremod = NCKH_mm)
+NCKH <- plsm(data = NC_dat1, strucmod = NCKH_sm, measuremod = NCKH_mm)
 
 #Creating object PLSsem:
-NCKH_pls <- sempls(model = ECSI, data = mobi, wscheme = "centroid")
+NCKH_pls <- sempls(model = NCKH, data = NC_dat1, wscheme = "centroid")
 ```
 
-
+## Đo correlation giữa các biến LVs và MVs:
 ```{r}
-mvpairs(model = ECSI, data = mobi, LVs = "")
+mvpairs(model = NCKH, data = NC_dat1, LVs = "CPDT")
+
+mvpairs(model = NCKH, data = NC_dat1, LVs = "KNND")
 ```
 
 ```{r}
 #Display graphic
-pathDiagram(ecsi, 
-            file = "ecsiStructure", 
+pathDiagram(NCKH_pls, 
+            file = "NCKH_Structure", 
             full = FALSE, #only the structural model is processed.
             edge.labels = "both", #names of the parameters and values are both printed
             output.type = "graphics", #
             digits = 2,
             graphics.fmt = "pdf")
-ecsi
+NCKH_pls
 ```
 
 # Mô tả các criteria indexs của model:
 ```{r}
-names(ecsi)
+names(NCKH_pls)
+```
+## Các chỉ số đánh giá model:
+```{r}
+#Xuất R^2 của model
+rSquared(NCKH_pls)
+
+#Chỉ số Q^2 
+qSquared(NCKH_pls,na.rm=FALSE,d=4) 
+
+#Xuất giá trị Dillon-Goldstein's rho
+dgrho(NCKH_pls)
 ```
 
 ```{r}
-#Xuất R^2 của model
-rSquared(ecsi)
-
-#Xuất giá trị Dillon-Goldstein's rho
-dgrho(ecsi)
+communality(NCKH_pls)
 ```
+```{r}
+redundancy(NCKH_pls)
+```
+```{r}
+gof(NCKH_pls)
+```
+*Nhận xét:
+-Giá trị R2 (R Square) là chỉ số đại diện cho năng lực giải thích của các biến độc lập lên một biến phụ thuộc của tập dữ liệu mẫu đang phân tích (Hair và cộng sự, 2019). 
+-Gía trị Q2 (out-of sample predictive power) là hệ số đánh giá năng lực dự báo ngoài mẫu  Để đo lường được khả năng dự báo của mô hình, do Stone (1974) và Geisser (1974) sáng tạo ra.
++0 < Q2 < 0.25: mức độ chính xác dự báo thấp
++0.25 ≤ Q2 ≤  0.5: mức độ chính xác dự báo trung bình
++Q2 > 0.5: mức độ chính xác dự báo cao
 
 ```{r}
 #Xuất Path coeffection 
-pC <- pathCoeff(ecsi)
-print(pC, abbreviate = TRUE, minlength = 3)
+pC <- pathCoeff(NCKH_pls)
+print(pC, minlength = 3)
 ```
+
+
 
 ```{r}
 #Xuất total effect:
-tE <- totalEffects(ecsi)
+tE <- totalEffects(NCKH_pls)
 print(tE, abbreviate = TRUE, minlength = 3)
 ```
 
 
 ```{r}
 #Xuất kết quả outer weights:
-plsWeights(ecsi)
-```
-
-```{r}
-#Xuất kết quả loadings của model:
-lE<-plsLoadings(ecsi)
-print(lE,abbreviate = TRUE, minlength = 3,reldiff=0.2)
-
+plsWeights(NCKH_pls)
 ```
 ```{r}
-plsLoadings(ecsi)
+#Xuất giá trị outer loadings của model:
+print(NCKH_pls$outer_loadings,digits=3)
 ```
--->Chỉ số loadings có thể dùng để check discriminant validity.(Cho plsLoadings() vào object và print thêm argument reldiff=0.2)
+
 
 ```{r}
-ecsi$cross_loadings
+#Xuất kết quả cross loadings của model:
+load_NCKH<-plsLoadings(NCKH_pls)
+print(load_NCKH,type="discriminant", cutoff=0.5, reldiff=0.2)
+```
+-->Chỉ số loadings (Hệ số tải) dùng để check discriminant validity thông qua chỉ số cross loadings. Biến nào có chỉ số loadings < cross loadings thì cần loại biến đó ra vì biến đó đo lượng mạnh biến LVs khác.
+
+```{r}
+NCKH_pls$cross_loadings
 ```
 # Booptrap to estimate
 ```{r}
 #Using booptrap method to estimate outer loadings and path coefficients
 set.seed(123)
-ecsiBoot <- bootsempls(ecsi, nboot = 500, start = "ones", verbose = FALSE)
-ecsiBoot
+NCKH_pls_Boot <- bootsempls(NCKH_pls, nboot = 500, start = "ones", verbose = FALSE)
+NCKH_pls_Boot
 ```
 
 
 ```{r}
 #Plotting 
-densityplot(ecsi, use = "residuals")
+densityplot(NCKH_pls, use = "residuals")
 ```
 
 
 ```{r}
 #Calculating confidence intervals based on the percentile method
-ecsiBootsummary <- summary(ecsiBoot, type = "bca", level = 0.9)
-ecsiBootsummary
+NCKH_pls_Bootsummary <- summary(NCKH_pls_Boot, type = "bca", level = 0.9)
+NCKH_pls_Bootsummary
 ```
 
 
 ```{r}
 #Plotting kernel density estimates:
-densityplot(ecsiBoot, pattern = "beta")
+densityplot(NCKH_pls_Boot, pattern = "beta")
 
 #Plotting parallel coordinates:
-parallelplot(ecsiBoot, 
+parallelplot(NCKH_pls_Boot, 
              pattern = "beta", 
              reflinesAt = c(0, 0.5),
              alpha = 0.3, 
