@@ -1,0 +1,73 @@
+---
+title: "Cluster_Analyst"
+author: "Lộc"
+date: "2023-03-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Sử dụng pp tìm Within cluster sums of squares nhỏ nhất:
+
+### Đánh giá dataframe:
+```{r}
+#Đánh giá data frame có đủ điều kiện để clutering ko?:
+data=get_clust_tendency(m1,n=70,graph =T)
+data
+```
+
+### Tìm K means phù hợp theo 3 pp:
+```{r}
+#Tính kc giữa các điểm:
+df=scale(m2)
+#Plotting số k phù hợp
+library(factoextra)
+
+fviz_nbclust(df,kmeans,method="wss")+labs(subtitle ="Method Elbow")
+
+fviz_nbclust(df,kmeans,method="silhouette")+labs(subtitle ="Method silhouette")
+
+fviz_nbclust(df,kmeans,nstart=25,nboot=50,method="gap_stat")+labs(subtitle ="Method Gap statistic")
+```
+
+### visualize clusters:
+```{r}
+#Tính centroids:
+km=kmeans(df,centers=2,nstart=20)
+#Plotting:
+fviz_cluster(km,df)
+```
+
+### Validate:
+```{r}
+#Tính chỉ số 
+sil=cluster::silhouette(km$cluster,dist(df))
+##Plotting
+fviz_silhouette(sil)
+```
+
+## Sử dụng package mclust:
+```{r}
+library(mclust)
+fmm<-Mclust(m2)
+fmm
+table(fmm$classification)
+fmm$parameters$mean
+```
+```{r}
+# compares with k-means solution
+kcl<-kmeans(m2, 2, nstart=25)
+table(fmm$classification, kcl$cluster)
+```
+
+```{r}
+# creates biplots
+library(FactoMineR)
+pca<-PCA(m2)
+plot(pca, 
+     choix=c("ind"), 
+     label="none", 
+     col.ind=fmm$classification)
+```

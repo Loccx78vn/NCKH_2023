@@ -4,11 +4,12 @@ author: "Lộc"
 date: "2023-03-13"
 output: html_document
 ---
-
+## Call packages:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+### Transform dataframe for easily practicing:
 ```{r}
 #Call packages:
 library(psych)
@@ -21,8 +22,7 @@ m1<-NC_dat1 %>%  mutate(Prior=ifelse(Prior=="Tàu lửa",1,0),
 m2<-NC_dat1 %>% select(contains("Qo")) %>% 
                drop_na()
 ```
-# Chỉ chọn Ordinal variables:
-## Choose acceptable number of factor:
+### Choose acceptable number of factor:
 ```{r}
 fa.parallel(cor(m1), 
             fm = "minres", 
@@ -32,17 +32,31 @@ fa.parallel(cor(m1),
 ## Phân tích theo pp Factor Analyst:
 ### Theo 3 factor:
 ```{r}
-solution <- fa(r = m1, 
+solution1 <- fa(r = m1, 
                nfactors = 5, 
                rotate = "oblimin", 
                fm = "pa")
-solution
+solution1
 ```
+```{r}
+solution2 <- fa(r = m2, 
+               nfactors = 5, 
+               rotate = "oblimin", 
+               fm = "pa")
+solution2
+```
+
+
+
 
 ```{r}
 print(solution$loadings,cutoff=0.3)
 ```
 
+```{r}
+print(solution2$loadings,cutoff=0.3)
+```
+## Vẽ biểu đồ Biplots:
 ```{r}
 #Tạo object PCA:
 (pca<-princomp(m2,cor =T))
@@ -50,15 +64,9 @@ print(solution$loadings,cutoff=0.3)
 ```{r}
 summary(pca)
 ```
-## Phaan tich Biplots:
-
+## Vẽ biểu đồ Biplots:
 ```{r}
-(PCA<-epPCA(m2))
-library(FactoMineR)
-(run_PCA<-PCA(m2))
-```
-```{r}
-pca<-prcomp(m2)
+pca<-prcomp(m1)
 #Evaluate:
 library(factoextra)
 fviz_pca_biplot(pca)
