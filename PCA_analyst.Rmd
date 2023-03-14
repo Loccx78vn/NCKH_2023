@@ -1,0 +1,65 @@
+---
+title: "Phân tích PCA"
+author: "Lộc"
+date: "2023-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Call packages:
+library(psych)
+#Tạo data frame:
+m1<-NC_dat1 %>%  mutate(Prior=ifelse(Prior=="Tàu lửa",1,0),
+                            Exper=ifelse(Exper=="Rồi",1,0)) %>% 
+                               select(contains("Qo"),Prior,Exper) %>% 
+                     drop_na()
+
+m2<-NC_dat1 %>% select(contains("Qo")) %>% 
+               drop_na()
+```
+# Chỉ chọn Ordinal variables:
+## Choose acceptable number of factor:
+```{r}
+fa.parallel(cor(m1), 
+            fm = "minres", 
+            fa = "both") 
+```
+
+## Phân tích theo pp Factor Analyst:
+### Theo 3 factor:
+```{r}
+solution <- fa(r = m1, 
+               nfactors = 5, 
+               rotate = "oblimin", 
+               fm = "pa")
+solution
+```
+
+```{r}
+print(solution$loadings,cutoff=0.3)
+```
+
+```{r}
+#Tạo object PCA:
+(pca<-princomp(m2,cor =T))
+```
+```{r}
+summary(pca)
+```
+## Phaan tich Biplots:
+
+```{r}
+(PCA<-epPCA(m2))
+library(FactoMineR)
+(run_PCA<-PCA(m2))
+```
+```{r}
+pca<-prcomp(m2)
+#Evaluate:
+library(factoextra)
+fviz_pca_biplot(pca)
+```

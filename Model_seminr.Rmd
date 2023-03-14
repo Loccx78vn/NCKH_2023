@@ -1,0 +1,210 @@
+---
+title: "PLSsem_model_forNCKH"
+author: "Lộc"
+date: "2023-03-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Call packages:
+
+```{r}
+library(seminr)
+```
+
+## Transform dataset NC_dat1 to NC_dat3 to easy to implement PLS sem:
+
+```{r}
+NC_dat1<-NC_dat1 %>% 
+  select(-QoF3) %>% 
+  rename(QoF3 = QoF4,
+         QoF4 = QoT1,
+         QoF5 = QoT2,
+         QoF6 = QoT3,
+         QoF7 = QoT4)
+```
+
+## Define measurement model:
+
+```{r}
+PLSsem_mm <- constructs(
+  composite("DVPT", multi_items("QoF", 1:7)),
+                                
+  composite("TLHK", multi_items("QoCU", c(1:4,6))),
+  
+  composite("KNND", multi_items("QoIN", 2:3)),
+  
+  composite("TMDT", multi_items("QoIN",4:5)),
+                                  
+  composite("CPDT", multi_items("QoCO",1:4))
+)
+```
+
+## Define structure model:
+
+```{r}
+PLSsem_sm <- relationships(
+  paths(from =c("KNND","TMDT","CPDT","DVPT"),to =c("TLHK")),
+  paths(from =c("CPDT"),to =c("TMDT","DVPT")),
+  paths(from =c("DVPT"),to =c("TMDT"))
+)
+```
+
+## Define PLS sem model:
+
+```{r}
+PLSsem_model <- estimate_pls(
+  data = NC_dat1,
+  measurement_model = PLSsem_mm,
+  structural_model  = PLSsem_sm,
+  inner_weights = path_weighting,
+  missing = mean_replacement,
+  missing_value = "-99")
+```
+
+## Summary the result:
+
+```{r}
+#Export the path coeffiecients and eliability metrics:
+summary(PLSsem_model)
+```
+
+### Evaluate the indicator reliability
+
+```{r}
+model_summary<-summary(PLSsem_model)
+
+#Extract the loadings
+model_summary$loadings
+```
+
+Nhận xét : - Indicator loadings above 0.708 are recommended, since they correspond to an explained variance (indicator reliabilty) of at least 50%. - Indicators with loadings between 0.40 and 0.70 should be considered for removal. - Indicators with very low loadings (below 0.40) should be removed.\
+--\>Tất cả các indicator loadings đều trên 0.7 nên được acceptable
+
+### Evaluate the convergent validity: (Gía trị hội tụ)
+* Giá trị hội tụ liên quan tới đánh giá mô hình đo lường CFA trên AMOS và Measurement Model trên SMARTPLS. Việc xây dựng indicators để đảm bảo các biến này đạt được mức độ hội tụ cần thiết sẽ khác nhau ở mô hình đo lường kết quả (reflective) và mô hình đo lường nguyên nhân (formative). 
+* Đối với mode A (reflective model)
+  *  Dựa vào lý thuyết về mô hình đo lường kết quả, indicators phản ánh kết quả mạnh từ Latent variables nên hệ số tương quan (Correlation of coeffecient) giữa các cặp chỉ báo cần dương và có giá trị cao.
+--> Nếu các indicators ko đạt được giá trị hội tụ thì giá trị mà biến LV nhận được sẽ không chính xác.
+* Đối với mode B (formative model)
+  * Do đặc điểm của thang đo nguyên nhân là các biến quan sát không nhất thiết phải có sự tương quan với nhau nên việc đánh giá tính hội tụ dạng thang đo này khá khó khăn. 
+--> Nếu các indicators ko đạt chuẩn thì sai số đo lường dành cho biến LV sẽ cao hay giá trị biến LV nhận được có độ chính xác không cao. 
+
+```{r}
+model_summary$reliability
+```
+
+### Evaluate the internal consistency reliability (Độ tin cậy nhất quán nội bộ)
+
+--\>Đánh giá sự đồng nhất (homogeneity) về đo lường của các indicators trong một thang đo. Các indicators có mối tương quan thuận chặt chẽ với nhau (mô hình đo lường kết quả) dẫn tới một kết quả quan trọng là nếu mức độ tương quan thuận giữa các chỉ báo (inter-items) mà cao, các inidcators này đang đo lường tốt cho một khái niệm (LVs)
+
+-   Theo lý thuyết:
+    -   Alpha là chặn dưới, RhoC là chặn trên và RhoA được xem là good representation of a construct's internal consistency reliability.
+-   Nhận xét:
+    -   Chỉ có các LVs CPDT, DTVPT, TLHK đạt chuẩn với giá trị Cronbach's alpha \>0.7.
+    -   Hai biến LVs không đạt chuẩn thang đo với giá trị Cronbach's alpha \<0.7.
+
+```{r}
+plot(model_summary$reliability)
+```
+
+### Evaluate the discriminant validty: (Gía trị phân biệt)
+Lý thuyết: Đánh giá giá trị phân biệt (Discriminant validty) chính là đánh giá mức độ không tương quan giữa các tập chỉ báo (indicators) đo lường cho các khái niệm (LVs) khác nhau. Hệ số tương quan giữa các nhóm indicators phản ánh các LVs khác nhau phải có giá trị thấp. 
+
+1.  Theo Fornell-Larcker criterion (Fornell & Larcker, 1981), $$\sqrt{AVE}$$ is not suitable for discriminant validity assessment due to its poor performance in detecting discriminant validity problems (Henseler et al., 2015; Radomir & Moisescu, 2019).
+
+2.  Recommend the heterotrait-monotrait ratio (HTMT) which is
+
+3.  Discriminant validity problems are present when HTMT values.
+
+    -   exceed 0.90 for constructs that are conceptually very similar.
+    -   exceed 0.85 for constructs that are conceptually more distinct.
+
+    ```{r}
+    #Extract the HTMT (the mean value of the indicator correlations across constructs)
+    model_summary$validity$htmt
+    ```
+
+## Bootstraping:
+
+```{r}
+#Boopstrapping to estimate standard errors and compute confidence intervals:
+boot_PLSsem_model <- bootstrap_model(seminr_model = PLSsem_model,
+  nboot = 500,
+  cores = NULL,
+  seed = 123)
+
+```
+
+
+```{r}
+#Extract the result of bootstrapping:
+boot_model_summmary<-summary(boot_PLSsem_model)
+```
+
+```{r}
+#Plotting:
+plot(boot_PLSsem_model)
+```
+
+## Evaluation of the structural model:
+
+### Evaluate the Collinearity issues: (Đa cộng tuyến)
+
+```{r}
+model_summary$vif_antecedents
+```
+
+Gía trị VIF \> 5 có khả năng bị đa cộng tuyến.
+
+### Evaluate the significance and relevance of the structural model relationships:
+
+```{r}
+boot_model_summmary$bootstrapped_paths
+```
+
+### Evaluate the explanatory power:
+
+```{r}
+#Extract the R^2 and Standard R^2:
+model_summary$paths
+```
+
+```{r}
+#Extract the f^2:
+model_summary$fSquare
+```
+
+### Predictive power:
+
+```{r}
+predict_model <- predict_pls(
+  model = PLSsem_model,
+  technique = predict_DA,
+  noFolds = 10,
+  reps = 10)
+summary_predict_model<-summary(predict_model)
+```
+
+```{r}
+#Plotting the prediction error of indicators:
+par(mfrow=c(1,3))
+plot(summary_predict_model,
+  indicator = "QoF1")
+plot(summary_predict_model,
+  indicator = "QoF2")
+plot(summary_predict_model,
+  indicator = "QoF3")
+par(mfrow=c(1,1))
+
+#Extract the index RMSE(MAE) to compare to LM:
+summary_predict_model
+```
+
+- High predictive power: All indicators in the PLS-SEM analysis have lower RMSE (or MAE) values compared to the LM. 
+- Medium predictive power: The majority (or the same number) of the indicators in the PLS-SEM analysis have lower RMSE (or MAE) values compared to the LM. 
+- Low predictive power: The minority of the of the indicators in the PLS-SEM analysis have lower RMSE (or MAE) values compared to the LM. 
+- Lack of predictive power: None of the of the indicators in the PLS-SEM analysis have lower RMSE (or MAE) values compared to the LM.
