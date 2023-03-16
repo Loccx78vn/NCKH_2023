@@ -173,8 +173,12 @@ NCKH_pls_Bootsummary
 
 ```{r}
 #Plotting kernel density estimates:
-densityplot(NCKH_pls_Boot, pattern = "beta")
+densityplot(NCKH_pls_Boot, pattern = "beta")+labs(title="Kernel density estimates for path coefficients")
+```
 
+
+
+```{r}
 #Plotting parallel coordinates:
 parallelplot(NCKH_pls_Boot, 
              pattern = "beta", 

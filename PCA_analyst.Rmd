@@ -32,30 +32,20 @@ fa.parallel(cor(m1),
 ## Phân tích theo pp Factor Analyst:
 ### Theo 3 factor:
 ```{r}
-solution1 <- fa(r = m1, 
+solution <- fa(r = m2, 
                nfactors = 5, 
                rotate = "oblimin", 
                fm = "pa")
-solution1
+solution
 ```
-```{r}
-solution2 <- fa(r = m2, 
-               nfactors = 5, 
-               rotate = "oblimin", 
-               fm = "pa")
-solution2
-```
-
-
-
 
 ```{r}
 print(solution$loadings,cutoff=0.3)
 ```
-
 ```{r}
-print(solution2$loadings,cutoff=0.3)
+solution$uniquenesses
 ```
+
 ## Vẽ biểu đồ Biplots:
 ```{r}
 #Tạo object PCA:
@@ -66,7 +56,7 @@ summary(pca)
 ```
 ## Vẽ biểu đồ Biplots:
 ```{r}
-pca<-prcomp(m1)
+pca<-prcomp(m2)
 #Evaluate:
 library(factoextra)
 fviz_pca_biplot(pca)

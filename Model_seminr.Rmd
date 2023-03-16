@@ -123,10 +123,10 @@ Lý thuyết: Đánh giá giá trị phân biệt (Discriminant validty) chính 
     -   exceed 0.90 for constructs that are conceptually very similar.
     -   exceed 0.85 for constructs that are conceptually more distinct.
 
-    ```{r}
+```{r}
     #Extract the HTMT (the mean value of the indicator correlations across constructs)
     model_summary$validity$htmt
-    ```
+```
 
 ## Bootstraping:
 

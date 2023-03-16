@@ -1,0 +1,19 @@
+digraph "NCKH_pls" {
+  rankdir=LR;
+  size="8,8";
+  node [fontname="Helvetica" fontsize=14 shape=box];
+  edge [fontname="Helvetica" fontsize=10];
+  center=1;
+  "CPDT" [shape=ellipse]
+  "DVPT" [shape=ellipse]
+  "KNND" [shape=ellipse]
+  "TMDT" [shape=ellipse]
+  "TLHK" [shape=ellipse]
+ "CPDT" -> "DVPT" [label="beta_1_2=0.62"];
+  "CPDT" -> "TMDT" [label="beta_1_4=0.3"];
+  "DVPT" -> "TMDT" [label="beta_2_4=0.47"];
+  "CPDT" -> "TLHK" [label="beta_1_5=0.32"];
+  "DVPT" -> "TLHK" [label="beta_2_5=0.26"];
+  "KNND" -> "TLHK" [label="beta_3_5=-0.01"];
+  "TMDT" -> "TLHK" [label="beta_4_5=0.3"];
+}

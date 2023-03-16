@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ### Đánh giá dataframe:
 ```{r}
 #Đánh giá data frame có đủ điều kiện để clutering ko?:
-data=get_clust_tendency(m1,n=70,graph =T)
+data=get_clust_tendency(m2,n=70,graph =T)
 data
 ```
 
@@ -50,24 +50,14 @@ fviz_silhouette(sil)
 
 ## Sử dụng package mclust:
 ```{r}
-library(mclust)
-fmm<-Mclust(m2)
-fmm
-table(fmm$classification)
-fmm$parameters$mean
-```
-```{r}
-# compares with k-means solution
-kcl<-kmeans(m2, 2, nstart=25)
-table(fmm$classification, kcl$cluster)
+library("NbClust")
+nb <- NbClust(df, distance = "euclidean", min.nc = 2,
+        max.nc = 10, method = "kmeans")
 ```
 
 ```{r}
-# creates biplots
-library(FactoMineR)
-pca<-PCA(m2)
-plot(pca, 
-     choix=c("ind"), 
-     label="none", 
-     col.ind=fmm$classification)
+library("NbClust")
+nb1 <- NbClust(df, distance = "manhattan", min.nc = 2,
+        max.nc = 10, method = "ward.D2")
 ```
+
